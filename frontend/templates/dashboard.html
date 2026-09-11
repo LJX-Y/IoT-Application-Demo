@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>IoT实时数据看板</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, "Microsoft YaHei"; background: #1e1e2e; color: white; padding: 20px; }
+        h1 { font-size: 22px; }
+        .device-card { background: #2a2a3e; padding: 15px; margin: 10px; border-radius: 8px; display: inline-block; min-width: 220px; }
+        .temp { font-size: 24px; color: #4fc3f7; }
+        .hum { font-size: 24px; color: #81c784; }
+        #chart { width: 100%; height: 400px; background: #2a2a3e; border-radius: 8px; margin-top: 15px; }
+        #status { color: #aaa; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <h1>📡 IoT设备实时监控</h1>
+    <div id="status">等待数据中……请确认模拟器已启动</div>
+    <div id="devices"></div>
+    <div id="chart"></div>
+
+    <script>
+        const socket = io();
+        const chart = echarts.init(document.getElementById('chart'));
+        const deviceData = {};  // {设备ID: [[时间, 温度], ...]}
+
+        const option = {
+            backgroundColor: '#2a2a3e',
+            title: { text: '温度实时趋势', textStyle: { color: '#fff' } },
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'time', axisLabel: { color: '#fff' } },
+            yAxis: { type: 'value', axisLabel: { color: '#fff' }, scale: true },
+            series: [{ name: '温度(°C)', type: 'line', data: [], smooth: true,
+                       symbol: 'none', lineStyle: { width: 2 } }]
+        };
+        chart.setOption(option);
+
+        socket.on('device_data', (data) => {
+            document.getElementById('status').innerText = '✅ 数据接收正常';
+            const devId = data.device_id;
+            // 新设备：创建卡片
+            if (!deviceData[devId]) {
+                deviceData[devId] = [];
+                document.getElementById('devices').innerHTML +=
+                    `<div class="device-card" id="dev-${devId}"></div>`;
+            }
+            deviceData[devId].push([data.timestamp, data.temperature]);
+            // 更新设备卡片
+            document.getElementById(`dev-${devId}`).innerHTML =
+                `<h3>📟 ${devId}</h3>
+                 <div class="temp">温度: ${data.temperature}°C</div>
+                 <div class="hum">湿度: ${data.humidity}%</div>
+                 <div>更新: ${new Date(data.timestamp).toLocaleTimeString()}</div>`;
+            // 更新图表（取最近20个点）
+            const last20 = deviceData[devId].slice(-20);
+            chart.setOption({ series: [{ data: last20 }] });
+        });
+    </script>
+</body>
+</html>
