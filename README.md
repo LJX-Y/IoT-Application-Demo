@@ -1,5 +1,7 @@
 # IoT-Application-Demo
 
+> 📝 **图文教程（完整踩坑实录）**：[专科零基础跑通物联网全链路：ESP32+MQTT+Flask 实时监控看板（含4个新手必踩的坑）](https://blog.csdn.net/2401_85632023/article/details/165103564) —— 保姆级讲解 + 4个新手必踩坑的解决方案
+
 一个从零搭建的物联网应用 Demo：**设备(ESP32/模拟器) → MQTT → Python后端 → Flask + WebSocket → ECharts实时看板**
 
 ## 项目架构
